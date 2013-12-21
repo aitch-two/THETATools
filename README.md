@@ -1,5 +1,5 @@
-THETATools 0.01
-===============
+THETATools 1.0
+==============
 
     Author: @aitch_two  
     URL: https://github.com/aitch-two/THETATools
@@ -32,7 +32,7 @@ Ricoh THETAなどが出力する正距円筒図法（Equirectangular projection�
 
 **THETAToolsプラグインをインストール**
 
-1. THETATools001.zipをダウンロードして適当なフォルダに解凍
+1. THETATools1_0.zipをダウンロードして適当なフォルダに解凍
 2. 解凍したDLLファイルを、Paint.NETをインストールしたフォルダのEffectsフォルダにコピーする  
   通常は「C:\Program Files\Paint.NET\Effects」にコピー
 3. Paint.NETを起動中なら、Paint.NETを再起動する
@@ -208,6 +208,6 @@ CodeLab for Paint.NETで作成しました。
 履歴
 ----
 
-2013-12-21 Version 0.01 初版公開
+2013-12-21 Version 1.0 初版公開
 
 以上
