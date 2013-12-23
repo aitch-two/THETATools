@@ -46,7 +46,7 @@ Ricoh THETAなどが出力する正距円筒図法（Equirectangular projection�
 1. Paint.NETを起動中なら、Paint.NETを終了する
 2. Paint.NETをインストールしたフォルダのEffectsフォルダから、
   該当のDLLファイルを削除する  
-  通常は「C:\Program Files\Paint.NET\Effects」にコピー
+  通常は「C:\Program Files\Paint.NET\Effects」から削除
 
 **Paint.NETをアンインストール**
 
@@ -143,7 +143,7 @@ Ricoh THETAに対応していない正距円筒画像表示ソフトでも正し
   変換後の画像の中央方向・画像の傾きを指定します
 
 - **Projection**  
-  投影方法を選択します。  
+  投影方法を選択します。
   - Equidistance（等距離射影方式）  
    ほとんどの魚眼レンズで採用されている射影方式。  
    最大画角は360°で全天球を含むことができる。

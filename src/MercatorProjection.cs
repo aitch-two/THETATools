@@ -14,7 +14,7 @@ bool Amount5 = false; // [0,1] Invert convert
 //   Icon: MercatorProjection.png
 // Support Information
 //   Author: @aitch_two
-//   DLL Version: 1.0
+//   DLL Version: 1.1
 //   URL: https://github.com/aitch-two/THETATools
 
 void Render(Surface dst, Surface src, Rectangle rect)
@@ -71,7 +71,7 @@ class EqRectProjection : Projection {
 
 class MercatorProjection : Projection {
 	private readonly double r;
-    public MercatorProjection (Surface fb, Mat3d mat) : base(fb, mat, true) {
+    public MercatorProjection (Surface fb, Mat3d mat) : base(fb, mat, false) {
     	r = fb.Width / 2 / Math.PI;
     }
     protected override Vec3d vec2d2vec3d(Vec2d i) {
@@ -82,7 +82,7 @@ class MercatorProjection : Projection {
         try {
             return new Vec2d(
                 center.x + fb.Width / 2.0 * Math.Atan2(vec.x, vec.z) / Math.PI,
-                center.y + r * vec.y / vec.z);
+                center.y + r * vec.y / Math.Sqrt(vec.x * vec.x + vec.z * vec.z));
         } catch(ArithmeticException) {
             return Vec2d.invalid;
         }
