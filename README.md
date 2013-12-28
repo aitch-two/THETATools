@@ -1,8 +1,8 @@
-THETATools 1.0
+THETATools 1.1
 ==============
 
-    Author: @aitch_two  
-    URL: https://github.com/aitch-two/THETATools
+Author: @aitch_two  
+URL: https://github.com/aitch-two/THETATools
 
 フリーのペイント/レタッチソフトPaint.NET用の、
 Ricoh THETAなどが出力する正距円筒図法（Equirectangular projection）の画像を
@@ -32,8 +32,9 @@ Ricoh THETAなどが出力する正距円筒図法（Equirectangular projection�
 
 **THETAToolsプラグインをインストール**
 
-1. THETATools1_0.zipをダウンロードして適当なフォルダに解凍  
-[https://github.com/aitch-two/THETATools/blob/master/THETATools1_0.zip](https://github.com/aitch-two/THETATools/blob/master/THETATools1_0.zip "THETATools1_0.zip")
+1. THETATools1_1.zipをダウンロードして適当なフォルダに解凍  
+[https://github.com/aitch-two/THETATools/releases](https://github.com/aitch-two/THETATools/releases "THETATools1_1.zip")  
+
 2. 解凍したDLLファイルを、Paint.NETをインストールしたフォルダのEffectsフォルダにコピーする  
   通常は「C:\Program Files\Paint.NET\Effects」にコピー
 3. Paint.NETを起動中なら、Paint.NETを再起動する
@@ -144,14 +145,14 @@ Ricoh THETAに対応していない正距円筒画像表示ソフトでも正し
 
 - **Projection**  
   投影方法を選択します。
-  - Equidistance（等距離射影方式）  
+  * Equidistance（等距離射影方式）  
    ほとんどの魚眼レンズで採用されている射影方式。  
    最大画角は360°で全天球を含むことができる。
-  - Equisolid-angle（等立体角射影方式）  
+  * Equisolid-angle（等立体角射影方式）  
    シグマ社の魚眼レンズで採用されている射影方式。  
    最大画角は360°で全天球を含むことができる。
    Equidistance（等距離射影方式）と比較すると、周辺部分が圧縮されている。
-  - Orthographic（正射影方式）  
+  * Orthographic（正射影方式）  
    特殊な魚眼レンズで採用されている射影方式。
    最大画角は180°。
 
@@ -208,6 +209,8 @@ CodeLab for Paint.NETで作成しました。
 
 履歴
 ----
+
+2013-12-28 Version 1.1 メルカトル変換（MercatorProjection.dll）の逆変換のバグの修正
 
 2013-12-21 Version 1.0 初版公開
 

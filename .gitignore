@@ -5,3 +5,6 @@
 *.jar
 *.war
 *.ear
+
+# Work Files #
+work/
