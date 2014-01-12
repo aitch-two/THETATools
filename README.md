@@ -32,8 +32,8 @@ Ricoh THETAなどが出力する正距円筒図法（Equirectangular projection�
 
 **THETAToolsプラグインをインストール**
 
-1. THETATools1_1.zipをダウンロードして適当なフォルダに解凍  
-[https://github.com/aitch-two/THETATools/releases](https://github.com/aitch-two/THETATools/releases "THETATools1_1.zip")  
+1. THETATools1_2.zipをダウンロードして適当なフォルダに解凍  
+[https://github.com/aitch-two/THETATools/releases](https://github.com/aitch-two/THETATools/releases "THETATools1_2.zip")  
 
 2. 解凍したDLLファイルを、Paint.NETをインストールしたフォルダのEffectsフォルダにコピーする  
   通常は「C:\Program Files\Paint.NET\Effects」にコピー
