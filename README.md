@@ -210,6 +210,8 @@ CodeLab for Paint.NETで作成しました。
 履歴
 ----
 
+2014-01-12 Version 1.2 処理の効率化・魚眼変換のクラス構成の整理
+
 2013-12-28 Version 1.1 メルカトル変換（MercatorProjection.dll）の逆変換のバグの修正
 
 2013-12-21 Version 1.0 初版公開
