@@ -46,18 +46,22 @@ void Render(Surface dst, Surface src, Rectangle rect)
 }
 
 class EqRectProjection : Projection {
+	private readonly double a, b;
+
     public EqRectProjection(Surface fb, Mat3d mat) : base(fb, mat, true) {
+    	a = -2.0 * Math.PI / fb.Width;
+    	b = -Math.PI / fb.Height;
     }
+
     protected override Vec3d vec2d2vec3d(Vec2d i) {
-        return Mat3d.rotY(-2.0 * Math.PI * i.x / fb.Width)
-                * Mat3d.rotX(-Math.PI * i.y / fb.Height)
-                * (new Vec3d(0, -1, 0));
+        return Mat3d.rotY(a * i.x) * Mat3d.rotX(b * i.y) * (new Vec3d(0, -1, 0));
     }
+
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
             return new Vec2d(
-                center.x + fb.Width / 2.0 * Math.Atan2(vec.x, vec.z) / Math.PI,
-                fb.Bounds.Top + fb.Height * Math.Acos((vec ^ (new Vec3d(0, -1, 0))) / vec.abs()) / Math.PI);
+                center.x - Math.Atan2(vec.x, vec.z) / a,
+                fb.Bounds.Top - Math.Acos((vec ^ (new Vec3d(0, -1, 0))) / vec.abs()) / b);
         } catch(ArithmeticException) {
             if (vec.y > 0) {
                 return new Vec2d(center.x, fb.Bounds.Bottom);
