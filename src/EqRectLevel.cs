@@ -14,7 +14,7 @@ int Amount5 = 1; // [1,16] MonteCarlo
 //   Icon: EqRectLevel.png
 // Support Information
 //   Author: @aitch_two
-//   DLL Version: 1.0
+//   DLL Version: 1.2
 //   URL: https://github.com/aitch-two/THETATools
 
 void Render(Surface dst, Surface src, Rectangle rect)
@@ -46,27 +46,31 @@ void Render(Surface dst, Surface src, Rectangle rect)
 }
 
 class EqRectProjection : Projection {
+	private static readonly Vec3d minusY = new Vec3d(0, -1, 0);
 	private readonly double a, b;
+	private readonly Vec2d centerBottom, centerTop;
 
     public EqRectProjection(Surface fb, Mat3d mat) : base(fb, mat, true) {
     	a = -2.0 * Math.PI / fb.Width;
     	b = -Math.PI / fb.Height;
+    	centerBottom = new Vec2d(center.x, fb.Bounds.Bottom);
+    	centerTop = new Vec2d(center.x, fb.Bounds.Top);
     }
 
     protected override Vec3d vec2d2vec3d(Vec2d i) {
-        return Mat3d.rotY(a * i.x) * Mat3d.rotX(b * i.y) * (new Vec3d(0, -1, 0));
+		return Mat3d.rotY(a * i.x) * Mat3d.rotX(b * i.y) * minusY;
     }
 
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
             return new Vec2d(
                 center.x - Math.Atan2(vec.x, vec.z) / a,
-                fb.Bounds.Top - Math.Acos((vec ^ (new Vec3d(0, -1, 0))) / vec.abs()) / b);
+                fb.Bounds.Top - Math.Acos((vec ^ minusY) / vec.abs()) / b);
         } catch(ArithmeticException) {
             if (vec.y > 0) {
-                return new Vec2d(center.x, fb.Bounds.Bottom);
+                return centerBottom;
             } else {
-                return new Vec2d(center.x, fb.Bounds.Top);
+                return centerTop;
             }
         }
     }

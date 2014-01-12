@@ -14,7 +14,7 @@ bool Amount5 = false; // [0,1] Invert convert
 //   Icon: MercatorProjection.png
 // Support Information
 //   Author: @aitch_two
-//   DLL Version: 1.1
+//   Version: 1.2
 //   URL: https://github.com/aitch-two/THETATools
 
 void Render(Surface dst, Surface src, Rectangle rect)
@@ -46,45 +46,55 @@ void Render(Surface dst, Surface src, Rectangle rect)
     }
 }
 
-class EqRectProjection : Projection {
-    public EqRectProjection(Surface fb, Mat3d mat) : base(fb, mat, true) {
+class MercatorProjection : Projection {
+	private readonly double r;
+
+    public MercatorProjection (Surface fb, Mat3d mat) : base(fb, mat, false) {
+    	r = fb.Width / 2 / Math.PI;
     }
+
     protected override Vec3d vec2d2vec3d(Vec2d i) {
-        return Mat3d.rotY(-2.0 * Math.PI * i.x / fb.Width)
-                * Mat3d.rotX(-Math.PI * i.y / fb.Height)
-                * (new Vec3d(0, -1, 0));
+        return Mat3d.rotY(i.x / -r) * (new Vec3d(0, i.y - center.y, -r));
     }
+
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
             return new Vec2d(
-                center.x + fb.Width / 2.0 * Math.Atan2(vec.x, vec.z) / Math.PI,
-                fb.Bounds.Top + fb.Height * Math.Acos((vec ^ (new Vec3d(0, -1, 0))) / vec.abs()) / Math.PI);
+                center.x + r * Math.Atan2(vec.x, vec.z),
+                center.y + r * vec.y / Math.Sqrt(vec.x * vec.x + vec.z * vec.z));
         } catch(ArithmeticException) {
-            if (vec.y > 0) {
-                return new Vec2d(center.x, fb.Bounds.Bottom);
-            } else {
-                return new Vec2d(center.x, fb.Bounds.Top);
-            }
+            return Vec2d.invalid;
         }
     }
 }
 
-class MercatorProjection : Projection {
-	private readonly double r;
-    public MercatorProjection (Surface fb, Mat3d mat) : base(fb, mat, false) {
-    	r = fb.Width / 2 / Math.PI;
+class EqRectProjection : Projection {
+	private static readonly Vec3d minusY = new Vec3d(0, -1, 0);
+	private readonly double a, b;
+	private readonly Vec2d centerBottom, centerTop;
+
+    public EqRectProjection(Surface fb, Mat3d mat) : base(fb, mat, true) {
+    	a = -2.0 * Math.PI / fb.Width;
+    	b = -Math.PI / fb.Height;
+    	centerBottom = new Vec2d(center.x, fb.Bounds.Bottom);
+    	centerTop = new Vec2d(center.x, fb.Bounds.Top);
     }
+
     protected override Vec3d vec2d2vec3d(Vec2d i) {
-        return Mat3d.rotY(-2.0 * Math.PI * i.x / fb.Width)
-                * (new Vec3d(0, i.y - center.y, -r));
+		return Mat3d.rotY(a * i.x) * Mat3d.rotX(b * i.y) * minusY;
     }
+
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
             return new Vec2d(
-                center.x + fb.Width / 2.0 * Math.Atan2(vec.x, vec.z) / Math.PI,
-                center.y + r * vec.y / Math.Sqrt(vec.x * vec.x + vec.z * vec.z));
+                center.x - Math.Atan2(vec.x, vec.z) / a,
+                fb.Bounds.Top - Math.Acos((vec ^ minusY) / vec.abs()) / b);
         } catch(ArithmeticException) {
-            return Vec2d.invalid;
+            if (vec.y > 0) {
+                return centerBottom;
+            } else {
+                return centerTop;
+            }
         }
     }
 }

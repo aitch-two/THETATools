@@ -16,8 +16,15 @@ int Amount7 = 1; // [1,16] MonteCarlo
 //   Icon: FishEyeProjection.png
 // Support Information
 //   Author: @aitch_two
-//   DLL Version: 1.0
+//   DLL Version: 1.2
 //   URL: https://github.com/aitch-two/THETATools
+
+enum kind {
+	EqDistProjection = 0,	// Equidistance Projection
+	EqSangleProjection,		// Equisolid Angle Projection
+	OrthoProjection,		// Orthographic Projection
+	test					// Equisolid Angle Projection
+};
 
 void Render(Surface dst, Surface src, Rectangle rect)
 {
@@ -25,19 +32,41 @@ void Render(Surface dst, Surface src, Rectangle rect)
     Mat3d persMat = Mat3d.rotY(Math.PI * Amount1 / 180)
         * Mat3d.rotX(Math.PI * Amount2 / 180)
         * Mat3d.rotZ(Math.PI * Amount3 / 180);
-    FishEyeProjection.kind k = (FishEyeProjection.kind)Amount4;
+    kind k = (kind)Amount4;
     double mag = Amount5;
     bool inv = Amount6;
     int montecarlo = Amount7;
 
     Projection dstProjection;
     Projection srcProjection;
-    if (!inv) {
-        srcProjection = new EqRectProjection(src, eqRectMat);
-        dstProjection = new FishEyeProjection(dst, persMat, k, mag);
-    } else {
-        srcProjection = new FishEyeProjection(src, persMat, k, mag);
-        dstProjection = new EqRectProjection(dst, eqRectMat);
+    switch (k) {
+	case kind.EqSangleProjection:
+	    if (!inv) {
+	        srcProjection = new EqRectProjection(src, eqRectMat);
+        	dstProjection = new EqSangleProjection(dst, persMat, mag);
+        } else {
+        	srcProjection = new EqSangleProjection(src, persMat, mag);
+	        dstProjection = new EqRectProjection(dst, eqRectMat);
+        }
+    	break;
+	case kind.OrthoProjection:
+	    if (!inv) {
+	        srcProjection = new EqRectProjection(src, eqRectMat);
+        	dstProjection = new OrthoProjection(dst, persMat, mag);
+        } else {
+        	srcProjection = new OrthoProjection(src, persMat, mag);
+	        dstProjection = new EqRectProjection(dst, eqRectMat);
+        }
+    	break;
+	default:
+	    if (!inv) {
+	        srcProjection = new EqRectProjection(src, eqRectMat);
+        	dstProjection = new EqDistProjection(dst, persMat, mag);
+        } else {
+        	srcProjection = new EqDistProjection(src, persMat, mag);
+	        dstProjection = new EqRectProjection(dst, eqRectMat);
+        }
+    	break;
     }
     foreach(Projection.Pixel p in dstProjection.pixels(rect)) {
         Col4d c = Col4d.zero;
@@ -48,67 +77,107 @@ void Render(Surface dst, Surface src, Rectangle rect)
     }
 }
 
-class FishEyeProjection : Projection {
-	public enum kind {
-		EqDistProjection = 0,	// Equidistance Projection
-		EqSangleProjection,		// Equisolid Angle Projection
-		OrthoProjection,		// Orthographic Projection
-		test					// Equisolid Angle Projection
-	};
-	private readonly kind k;
+class EqDistProjection : Projection {
     private readonly double mag;
+    private readonly double a;
+	private static readonly Vec3d unitZ = new Vec3d(0, 0, 1);
 
-    public FishEyeProjection(Surface fb, Mat3d mat, kind k, double mag) : base(fb, mat, false) {
-    	this.k = k;
+    public EqDistProjection(Surface fb, Mat3d mat, double mag) : base(fb, mat, false) {
     	this.mag = mag;
+    	this.a = Math.PI / fb.Height;
     }
+
     protected override Vec3d vec2d2vec3d(Vec2d i) {
         try {
-            Vec2d a = (1 / mag) * (i - center);
-            double dist;
-            switch (k) {
-        	case kind.EqSangleProjection:
-        		dist = 2 * Math.Asin(a.abs() / fb.Height * Math.PI / 2);
-		    	if (dist > Math.PI) {
-		    		return Vec3d.zero;
-		    	}
-        		break;
-        	case kind.OrthoProjection:
-				if (1.0 <= a.abs() / (fb.Height / Math.PI)) {
-		    		return Vec3d.zero;
-		    	}
-	            dist = Math.Asin(a.abs() / (fb.Height / Math.PI));
-        		break;
-        	default:
-	            dist = a.abs() / (fb.Height / Math.PI);
-		    	if (dist > Math.PI) {
-		    		return Vec3d.zero;
-		    	}
-	        	break;
-            }
-	    	double azimuth = Math.Atan2(a.y, a.x);
-            return Mat3d.rotZ(-azimuth) * Mat3d.rotY(-dist) * (new Vec3d(0, 0, 1));
+            Vec2d s = (1 / mag) * (i - center);
+            double dist = s.abs() * a;
+	    	if (dist > Math.PI) {
+	    		return Vec3d.zero;
+	    	}
+	    	double azimuth = Math.Atan2(s.y, s.x);
+            return Mat3d.rotZ(-azimuth) * Mat3d.rotY(-dist) * unitZ;
         } catch(ArithmeticException) {
-    		return new Vec3d(0, 0, 1);
+    		return unitZ;
         }
     }
+
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
-            double dist;
-            switch (k) {
-        	case kind.EqSangleProjection:
-	        	dist = Math.Sqrt(2 - 2 * ((new Vec3d(0, 0, 1)) ^ vec) / vec.abs()) * (fb.Height / Math.PI);
-        		break;
-        	case kind.OrthoProjection:
-                if (vec.z <= 0) {
-                    return Vec2d.invalid;
-                }
-	        	dist = Math.Sin(Math.Acos(((new Vec3d(0, 0, 1)) ^ vec) / vec.abs())) * (fb.Height / Math.PI);
-        		break;
-        	default:
-	        	dist = Math.Acos(((new Vec3d(0, 0, 1)) ^ vec) / vec.abs()) * (fb.Height / Math.PI);
-	        	break;
+            double dist = Math.Acos((unitZ ^ vec) / vec.abs()) / a;
+        	double azimuth = Math.Atan2(vec.y, vec.x);
+        	return center + (new Vec2d(mag * dist * Math.Cos(azimuth), mag * dist * Math.Sin(azimuth)));
+        } catch(ArithmeticException) {
+            return center;
+        }
+    }
+}
+
+class EqSangleProjection : Projection {
+    private readonly double mag;
+    private readonly double a;
+	private static readonly Vec3d unitZ = new Vec3d(0, 0, 1);
+
+    public EqSangleProjection(Surface fb, Mat3d mat, double mag) : base(fb, mat, false) {
+    	this.mag = mag;
+    	this.a = Math.PI / fb.Height;
+    }
+
+    protected override Vec3d vec2d2vec3d(Vec2d i) {
+        try {
+            Vec2d s = (1 / mag) * (i - center);
+            double dist = 2 * Math.Asin(s.abs() * a / 2);
+	    	if (dist > Math.PI) {
+	    		return Vec3d.zero;
+	    	}
+	    	double azimuth = Math.Atan2(s.y, s.x);
+            return Mat3d.rotZ(-azimuth) * Mat3d.rotY(-dist) * unitZ;
+        } catch(ArithmeticException) {
+    		return unitZ;
+        }
+    }
+
+    protected override Vec2d vec3d2vec2d(Vec3d vec) {
+        try {
+            double dist = Math.Sqrt(2 - 2 * (unitZ ^ vec) / vec.abs()) / a;
+        	double azimuth = Math.Atan2(vec.y, vec.x);
+        	return center + (new Vec2d(mag * dist * Math.Cos(azimuth), mag * dist * Math.Sin(azimuth)));
+        } catch(ArithmeticException) {
+            return center;
+        }
+    }
+}
+
+class OrthoProjection : Projection {
+    private readonly double mag;
+    private readonly double a;
+	private static readonly Vec3d unitZ = new Vec3d(0, 0, 1);
+
+    public OrthoProjection(Surface fb, Mat3d mat, double mag) : base(fb, mat, false) {
+    	this.mag = mag;
+    	this.a = Math.PI / fb.Height;
+    }
+
+    protected override Vec3d vec2d2vec3d(Vec2d i) {
+        try {
+            Vec2d s = (1 / mag) * (i - center);
+            double t = s.abs() * a;
+			if (1.0 <= t) {
+	    		return Vec3d.zero;
+	    	}
+            double dist = Math.Asin(t);
+	    	double azimuth = Math.Atan2(s.y, s.x);
+            return Mat3d.rotZ(-azimuth) * Mat3d.rotY(-dist) * unitZ;
+        } catch(ArithmeticException) {
+    		return unitZ;
+        }
+    }
+
+    protected override Vec2d vec3d2vec2d(Vec3d vec) {
+        try {
+            if (vec.z <= 0) {
+                return Vec2d.invalid;
             }
+        	double dist = Math.Sin(Math.Acos((unitZ ^ vec) / vec.abs())) / a;
         	double azimuth = Math.Atan2(vec.y, vec.x);
         	return center + (new Vec2d(mag * dist * Math.Cos(azimuth), mag * dist * Math.Sin(azimuth)));
         } catch(ArithmeticException) {
@@ -118,23 +187,31 @@ class FishEyeProjection : Projection {
 }
 
 class EqRectProjection : Projection {
+	private static readonly Vec3d minusY = new Vec3d(0, -1, 0);
+	private readonly double a, b;
+	private readonly Vec2d centerBottom, centerTop;
+
     public EqRectProjection(Surface fb, Mat3d mat) : base(fb, mat, true) {
+    	a = -2.0 * Math.PI / fb.Width;
+    	b = -Math.PI / fb.Height;
+    	centerBottom = new Vec2d(center.x, fb.Bounds.Bottom);
+    	centerTop = new Vec2d(center.x, fb.Bounds.Top);
     }
+
     protected override Vec3d vec2d2vec3d(Vec2d i) {
-        return Mat3d.rotY(-2.0 * Math.PI * i.x / fb.Width)
-                * Mat3d.rotX(-Math.PI * i.y / fb.Height)
-                * (new Vec3d(0, -1, 0));
+		return Mat3d.rotY(a * i.x) * Mat3d.rotX(b * i.y) * minusY;
     }
+
     protected override Vec2d vec3d2vec2d(Vec3d vec) {
         try {
             return new Vec2d(
-                center.x + fb.Width / 2.0 * Math.Atan2(vec.x, vec.z) / Math.PI,
-                fb.Bounds.Top + fb.Height * Math.Acos((vec ^ (new Vec3d(0, -1, 0))) / vec.abs()) / Math.PI);
+                center.x - Math.Atan2(vec.x, vec.z) / a,
+                fb.Bounds.Top - Math.Acos((vec ^ minusY) / vec.abs()) / b);
         } catch(ArithmeticException) {
             if (vec.y > 0) {
-                return new Vec2d(center.x, fb.Bounds.Bottom);
+                return centerBottom;
             } else {
-                return new Vec2d(center.x, fb.Bounds.Top);
+                return centerTop;
             }
         }
     }
