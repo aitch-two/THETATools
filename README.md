@@ -1,4 +1,4 @@
-THETATools 1.1
+THETATools 1.2
 ==============
 
 Author: @aitch_two  
